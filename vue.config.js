@@ -3,9 +3,11 @@ const { defineConfig } = require('@vue/cli-service')
 
 module.exports = defineConfig({
 
-  publicPath: process.env.NODE_ENV === 'production'
-    ? '/dot-clock/'
-    : '/',
+  // publicPath: process.env.NODE_ENV === 'production'
+  //   ? '/dot-clock/'
+  //   : '/',
+
+  publicPath: '/dot-clock/',
 
   transpileDependencies: [
     'vuetify'
