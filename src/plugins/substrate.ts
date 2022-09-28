@@ -63,12 +63,12 @@ class SubstrateAPI {
   }
 
   async onConnected () {
-    console.debug(`plugins/substrate.ts: on('connected', ${this.chainId})`)
+    console.debug(`plugins/substrate.ts: onConnected(), ${this.chainId})`)
     await store.dispatch('apiConnected', this.chainId)
   }
 
   async onDisconnected (evt: any) {
-    console.debug(`plugins/substrate.ts: on('disconnected', ${this.chainId})`)
+    console.debug(`plugins/substrate.ts: onDisconnected(), ${this.chainId})`)
     console.debug(evt)
     await store.dispatch('apiDisconnected', this.chainId)
   }
@@ -114,6 +114,7 @@ class SubstrateAPI {
   }
 
   async connect (chainId = 'kusama', rpc = true): Promise<void> {
+    console.debug(`plugins/substrate.ts: connect(${chainId}, ${rpc})`)
     this.chainId = chainId
     if (this.provider) { this.api?.disconnect(); this.provider = null }
     if (!rpc) {

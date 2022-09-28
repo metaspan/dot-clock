@@ -3,7 +3,8 @@
     <v-card-title>
       <v-row>
         <v-col>
-          Referenda <v-btn text disabled :loading="loading"></v-btn>
+          Referenda <v-btn small text :loading="loading" @click="readReferenda()">
+          <v-icon>mdi-refresh</v-icon></v-btn>
         </v-col>
         <v-col align="end">
           <a :href="`https://polkadot.js.org/apps/?rpc=${endpoint}#/democracy`" class="external-link" target="_blank">
@@ -127,17 +128,23 @@ export default Vue.extend<IData, IMethods, IComputed, IProps>({
   },
   data () {
     return {
-      loading: true,
+      loading: false,
       referenda: [],
       numDecimals: 0
     }
   },
   watch: {
-    chainId () {
-      if (!this.loading) {
-        this.referenda = []
+    async chainId () {
+      // if (!this.loading) {
+      this.referenda = []
+      // this.$nextTick(async () => {
+      //   await this.$substrate.api.isReady
+      //   this.readReferenda()
+      // })
+      setTimeout(() => {
         this.readReferenda()
-      }
+      }, 3000)
+      // }
     },
     block (val: number) {
       if (!this.loading && val % this.interval === 0) this.readReferenda()
@@ -174,17 +181,25 @@ export default Vue.extend<IData, IMethods, IComputed, IProps>({
       }
     },
     async readReferenda () {
+      console.debug('readReferenda()...')
       this.loading = true
+      await this.$substrate.isReady
       const count = await this.$substrate.api.query.democracy?.referendumCount()
       // console.debug('count', count?.toJSON() || 0)
-      var list: IReferendum[] = []
+      var list: IRefOngoing[] = []
+      var queries = []
       for (var i = 0; i < count; i++) {
-        const info = await this.$substrate.api.query.democracy.referendumInfoOf(i)
-        const ref: IReferendum = info.toJSON()
+        queries.push(this.$substrate.api.query.democracy.referendumInfoOf(i))
+      }
+      const results = await Promise.all(queries)
+      for (var j = 0; j < count; j++) {
+        // const info = await this.$substrate.api.query.democracy.referendumInfoOf(i)
+        // const ref: IReferendum = info.toJSON()
+        const ref: IReferendum = results[j].toJSON()
         // console.debug(ref)
         if (ref?.ongoing) {
           // console.debug(i, info.toJSON())
-          list.push({ index: i, ...ref.ongoing })
+          list.push({ index: j, ...ref.ongoing })
         }
       }
       this.referenda = list

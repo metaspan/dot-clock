@@ -82,7 +82,7 @@ interface IMethods {
   subChainHeads (): void
   setProgress (): void
   unsubAll (): void
-  readReferenda (): void
+  // readReferenda (): void
 }
 // eslint-disable-next-line
 interface IComputed {
