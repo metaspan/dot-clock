@@ -13,6 +13,7 @@
       </v-row>
     </v-card-title>
     <v-card-text>
+      <v-fade-transition mode="out-in">
       <v-list dense>
         <v-list-item v-for="item in referenda" v-bind:key="item.index">
           <!-- {{item}} -->
@@ -35,7 +36,7 @@
               <v-progress-linear
                 background-color="red"
                 color="blue"
-                :value="item?.tally?.ayes / item?.tally?.ayes + item?.tally?.nays">
+                :value="voteResult(item)">
               </v-progress-linear>
             </v-list-item-subtitle>
           </v-list-item-content>
@@ -45,6 +46,7 @@
           </v-list-item-action> -->
         </v-list-item>
       </v-list>
+    </v-fade-transition>
     </v-card-text>
   </v-card>
 </template>
@@ -57,11 +59,12 @@ import { mapState } from 'vuex'
 import moment from 'moment-timezone'
 
 interface IRefTally {
-  ayes: number
-  nays: number
+  ayes: string // number
+  nays: string // number
   turnout: string
 }
 interface IRefOngoing {
+  index?: number
   delay: number // blocks?
   end: number // block
   proposalHash: string
@@ -79,11 +82,12 @@ interface IReferendum {
 }
 interface IData {
   loading: boolean
-  referenda: IReferendum[]
+  referenda: IRefOngoing[]
   numDecimals: number
 }
 interface IMethods {
-  estimateTime (ref: IReferendum): any
+  estimateTime (ref: IRefOngoing): any
+  voteResult (ref: IRefOngoing): any
   toCoin (val: any): string
   parseHex (val: any): any
   readReferenda (): void
@@ -140,7 +144,14 @@ export default Vue.extend<IData, IMethods, IComputed, IProps>({
     }
   },
   methods: {
-    estimateTime (ref: IReferendum) {
+    voteResult (item: IRefOngoing) {
+      // console.debug('voteResult()', item)
+      const yes = Number(!`${item.tally.ayes}`.startsWith('0x') ? item.tally.ayes : hexToBigInt(item.tally.ayes))
+      const nos = Number(!`${item.tally.nays}`.startsWith('0x') ? item.tally.nays : hexToBigInt(item.tally.nays))
+      // console.debug('yes/nos', yes, nos)
+      return yes / (yes + nos) * 100
+    },
+    estimateTime (ref: IRefOngoing) {
       // console.debug('estimateTime()', ref)
       const remainingBlocks = (ref.end || 0) - this.block
       return moment().add(remainingBlocks * 6, 'seconds').fromNow()
